@@ -17,6 +17,7 @@ import { PostConnection } from 'src/models/pagination/post-connection.model';
 import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
 import { PubSub } from 'graphql-subscriptions/';
 import { CreatePostInput } from './dto/createPost.input';
+import { DeletePostInput } from './dto/deletePost.input';
 import { UserEntity } from 'src/decorators/user.decorator';
 import { User } from 'src/models/user.model';
 import { GqlAuthGuard } from 'src/guards/gql-auth.guard';
@@ -51,6 +52,23 @@ export class PostResolver {
     return newPost;
   }
 
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Post)
+  async deletePost(
+    @UserEntity() user: User,
+    @Args('data') data: DeletePostInput
+  ) {
+    const newPost = this.prisma.post.delete({
+      data: {
+        //published: true,
+        //title: data.title,
+        //content: data.content,
+        //authorId: user.id,
+      },
+    });
+    pubSub.publish('postCreated', { postCreated: newPost });
+    return newPost;
+  }
   @Query(() => PostConnection)
   async publishedPosts(
     @Args() { after, before, first, last }: PaginationArgs,
